@@ -1,0 +1,23 @@
+quarkus:
+    http:
+        port: 4000
+    datasource:
+        db-kind: postgresql
+        db-version: 16.2
+        username: postgres
+        password: postgres
+        jdbc:
+            url: jdbc:postgresql://localhost:5432/quarkus_test
+    hibernate-orm:
+        schema-management:
+            create-schemas: true
+            strategy: drop-and-create # none, create, drop-and-create, drop, update, validate
+        database:
+            version-check:
+                enabled: true
+        log:
+            sql: true
+            format-sql: false
+
+app:
+    name: "publisher"
