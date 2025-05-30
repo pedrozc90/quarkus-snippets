@@ -18,6 +18,12 @@ quarkus:
         log:
             sql: true
             format-sql: false
+    rabbitmqclient:
+        hostname: localhost
+        port: 5672
+        username: pedrozc90
+        password: pedrozc90
+        virtual-host: quarkus
 
 app:
     name: "publisher"

@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+    rabbitmq:
+        image: rabbitmq:4.1.0-management-alpine
+        container_name: rabbitmq
+        ports:
+            - "5672:5672"     # AMQP protocol port
+            - "15672:15672"   # HTTP UI (Management plugin)
+        environment:
+            RABBITMQ_DEFAULT_USER: rabbitmq
+            RABBITMQ_DEFAULT_PASS: rabbitmq
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+        networks:
+            - rabbitmq_network
+
+volumes:
+    rabbitmq_data:
+        name: rabbitmq_data
+        driver: local
+
+networks:
+    rabbitmq_network:
+        name: rabbitmq_network
+        driver: bridge
