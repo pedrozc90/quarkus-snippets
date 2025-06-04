@@ -1,20 +1,39 @@
 package org.pedrozc90.core.utils;
 
+import com.drew.imaging.FileType;
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.MetadataException;
+import com.drew.metadata.exif.ExifDirectoryBase;
+import com.drew.metadata.jpeg.JpegDirectory;
+import com.drew.metadata.png.PngDirectory;
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import org.apache.commons.lang3.StringUtils;
+import org.jboss.logging.Logger;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 
 @ApplicationScoped
 public class FileUtils {
+
+    private static final Logger logger = Logger.getLogger(FileUtils.class);
 
     private static final String DEFAULT_CHARSET = "utf-8";
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
@@ -94,6 +113,62 @@ public class FileUtils {
         final NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US);
         formatter.setMaximumFractionDigits(1);
         return formatter.format(size) + " " + units[unitIndex];
+    }
+
+    public Dimensions getImageDimensions(final byte[] content, final String contentType) {
+        try {
+            final FileType fileType = Arrays.stream(FileType.values())
+                .filter(v -> StringUtils.equals(v.getMimeType(), contentType))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported content type: " + contentType));
+
+            final Metadata metadata = ImageMetadataReader.readMetadata(new ByteArrayInputStream(content), content.length, fileType);
+
+            // Try to get dimensions from JPEG/TIFF/PNG metadata
+            for (Directory directory : metadata.getDirectories()) {
+                if (directory.containsTag(ExifDirectoryBase.TAG_IMAGE_WIDTH) &&
+                    directory.containsTag(ExifDirectoryBase.TAG_IMAGE_HEIGHT)) {
+                    int width = directory.getInt(ExifDirectoryBase.TAG_IMAGE_WIDTH);
+                    int height = directory.getInt(ExifDirectoryBase.TAG_IMAGE_HEIGHT);
+                    return new Dimensions(width, height);
+                }
+            }
+
+            // If not found in EXIF, try PNG/JPEG specific directories
+            Directory directory = metadata.getFirstDirectoryOfType(PngDirectory.class);
+            if (directory != null) {
+                int width = directory.getInt(PngDirectory.TAG_IMAGE_WIDTH);
+                int height = directory.getInt(PngDirectory.TAG_IMAGE_HEIGHT);
+                return new Dimensions(width, height);
+            }
+
+            directory = metadata.getFirstDirectoryOfType(JpegDirectory.class);
+            if (directory != null) {
+                int width = directory.getInt(JpegDirectory.TAG_IMAGE_WIDTH);
+                int height = directory.getInt(JpegDirectory.TAG_IMAGE_HEIGHT);
+                return new Dimensions(width, height);
+            }
+
+        } catch (IOException e) {
+            logger.error("Error reading image metadata", e);
+        } catch (ImageProcessingException e) {
+            logger.error("Error reading image metadata", e);
+        } catch (MetadataException e) {
+            logger.error("Error reading image metadata", e);
+        }
+        return null;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @SuperBuilder(toBuilder = true)
+    public static class Dimensions {
+
+        public int width;
+
+        public int height;
+
     }
 
 }

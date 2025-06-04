@@ -11,7 +11,7 @@ quarkus:
     hibernate-orm:
         schema-management:
             create-schemas: true
-            strategy: drop-and-create # none, create, drop-and-create, drop, update, validate
+            strategy: validate # none, create, drop-and-create, drop, update, validate
         database:
             version-check:
                 enabled: true
@@ -21,8 +21,8 @@ quarkus:
     rabbitmqclient:
         hostname: localhost
         port: 5672
-        username: pedrozc90
-        password: pedrozc90
+        username: rabbitmq
+        password: rabbitmq
         virtual-host: quarkus
 
 app:

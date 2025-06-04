@@ -42,4 +42,12 @@ public class ResourceHelper {
         return inputStream;
     }
 
+    public byte[] getResourceAsBytes(final String filename) throws IOException {
+        final InputStream inputStream = loader.getResourceAsStream(filename);
+        if (inputStream == null) {
+            throw new IllegalArgumentException("Resource not found: " + filename);
+        }
+        return inputStream.readAllBytes();
+    }
+
 }

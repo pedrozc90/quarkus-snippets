@@ -21,8 +21,8 @@ quarkus:
     rabbitmqclient:
         hostname: localhost
         port: 5672
-        username: pedrozc90
-        password: pedrozc90
+        username: rabbitmq
+        password: rabbitmq
         virtual-host: quarkus
 
 app:

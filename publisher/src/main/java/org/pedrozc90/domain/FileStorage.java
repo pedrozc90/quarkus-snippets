@@ -72,6 +72,12 @@ public class FileStorage implements Serializable {
     @Column(name = "length", columnDefinition = "bigint", nullable = false)
     private Long length = 0L;
 
+    @Column(name = "width")
+    private Integer width;
+
+    @Column(name = "height")
+    private Integer height;
+
     public boolean isImage() {
         return StringUtils.startsWith(contentType, "image/");
     }

@@ -1,7 +1,8 @@
 package org.pedrozc90.adapters.messages;
 
-import com.google.inject.Inject;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -11,8 +12,11 @@ public class MessageServiceTest {
     protected MessageService service;
 
     @Test
-    public void test() {
-        service.send("Sanity Check");
+    @DisplayName("Send message to rabbitmq")
+    public void publishRabbitmqMessage() {
+        final String text = "Sanity Check";
+        final byte[] bytes = text.getBytes();
+        service.send(bytes);
     }
 
 }

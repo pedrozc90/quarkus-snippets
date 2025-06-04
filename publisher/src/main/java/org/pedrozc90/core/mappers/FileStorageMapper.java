@@ -26,6 +26,8 @@ public class FileStorageMapper implements EntityMapper<FileStorage, FileStorageD
         dto.setContentType(entity.getContentType());
         dto.setCharset(entity.getCharset());
         dto.setLength(entity.getLength());
+        dto.setWidth(entity.getWidth());
+        dto.setHeight(entity.getHeight());
         dto.setSpace(utils.toPrettySize(entity.getLength()));
         return dto;
     }
@@ -43,6 +45,8 @@ public class FileStorageMapper implements EntityMapper<FileStorage, FileStorageD
         entity.setContentType(dto.getContentType());
         entity.setCharset(dto.getCharset());
         entity.setLength(dto.getLength());
+        entity.setWidth(dto.getWidth());
+        entity.setHeight(dto.getHeight());
         return entity;
     }
 

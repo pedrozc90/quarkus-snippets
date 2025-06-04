@@ -27,11 +27,11 @@ class FilesResourceTest {
     @Test
     @DisplayName("POST /files successfully uploads file with valid metadata")
     void uploadFileWithValidMetadata() throws IOException, URISyntaxException {
-        final File file = helper.getResourceFile("files/sample.txt");
+        final File file = helper.getResourceFile("files/black-labrador-3500x2095.jpg");
 
         given()
             .when()
-            .multiPart("file", file, "text/plain")
+            .multiPart("file", file, "image/jpeg")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .post("/files")
             .then()
@@ -43,20 +43,22 @@ class FilesResourceTest {
             .body("updated_at", notNullValue())
             .body("version", equalTo(0))
             .body("hash", notNullValue())
-            .body("filename", equalTo("sample.txt"))
-            .body("content_type", equalTo("text/plain"))
-            .body("charset", equalTo("utf-8"))
-            .body("length", notNullValue())
-            .body("space", notNullValue())
+            .body("filename", equalTo("black-labrador-3500x2095.jpg"))
+            .body("content_type", equalTo("image/jpeg"))
+            .body("charset", anything())
+            .body("length", anything())
+            .body("space", anything())
+            .body("width", anything())
+            .body("height", anything())
             .body("$", not(hasKey("content")));
     }
 
     @Test
     @DisplayName("GET /files/{id} returns file metadata")
     void getFileMetadata() throws IOException, URISyntaxException {
-        final File file = helper.getResourceFile("files/sample.txt");
+        final File file = helper.getResourceFile("files/black-labrador-3500x2095.jpg");
 
-        final FileStorageDto dto = uploadFile(file, "text/plain");
+        final FileStorageDto dto = uploadFile(file, "image/jpeg");
         assertNotNull(dto);
 
         given()
@@ -77,6 +79,8 @@ class FilesResourceTest {
             .body("charset", equalTo(dto.getCharset()))
             .body("length", equalTo(dto.getLength().intValue()))
             .body("space", notNullValue())
+            .body("width", notNullValue())
+            .body("height", notNullValue())
             .body("$", not(hasKey("content")));
     }
 

@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.pedrozc90.adapters.messages.MessageService;
 import org.pedrozc90.adapters.persistence.FileStorageRepository;
 import org.pedrozc90.core.exceptions.AppException;
 import org.pedrozc90.core.utils.DigestUtils;
@@ -22,6 +23,9 @@ public class FileStorageService {
 
     @Inject
     protected FileStorageRepository repository;
+
+    @Inject
+    protected MessageService messageService;
 
     @Inject
     protected DigestUtils digestUtils;
@@ -58,7 +62,20 @@ public class FileStorageService {
         fs.setCharset(charset);
         fs.setLength(length);
 
+        // try to set image dimensions
+        if (fs.isImage()) {
+            final FileUtils.Dimensions dimensions = fileUtils.getImageDimensions(content, contentType);
+            if (dimensions != null) {
+                fs.setWidth(dimensions.getWidth());
+                fs.setHeight(dimensions.getHeight());
+            }
+        }
+
         repository.persistAndFlush(fs);
+
+        if (fs.isImage()) {
+            messageService.resize(fs.getUuid());
+        }
 
         return fs;
     }
@@ -66,7 +83,7 @@ public class FileStorageService {
     public FileStorage create(final String filename, final byte[] content, final String contentType, final String charset) {
         final boolean isText = fileUtils.isText(contentType) || fileUtils.isText(filename);
         final boolean isUtf8 = StringUtils.equalsIgnoreCase(charset, "UTF-8");
-        if (isText || !isUtf8) {
+        if (isText && !isUtf8) {
             try {
                 final byte[] contentUtf8 = fileUtils.toUTF8(content, charset);
                 return create(filename, contentUtf8, contentType, "UTF-8", contentUtf8.length);
@@ -99,6 +116,15 @@ public class FileStorageService {
             return create(filename, content, contentType, chatset);
         } catch (IOException e) {
             throw AppException.of(Response.Status.INTERNAL_SERVER_ERROR, e);
+        }
+    }
+
+    public String toString(final FileStorage fs) {
+        if (fs == null || fs.isImage() || fs.isVideo()) return null;
+        try {
+            return new String(fs.getContent(), fs.getCharset());
+        } catch (UnsupportedEncodingException e) {
+            return new String(fs.getContent());
         }
     }
 

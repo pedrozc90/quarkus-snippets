@@ -15,7 +15,10 @@ import org.pedrozc90.domain.FileStorage;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @ApplicationScoped
 public class FileStorageService {
@@ -32,6 +35,18 @@ public class FileStorageService {
     // QUERIES
     public FileStorage get(final Long id) throws AppException {
         return repository.findByIdOptional(id).orElseThrow(() -> AppException.of(Response.Status.NOT_FOUND, "File not found"));
+    }
+
+    public Optional<FileStorage> get(final UUID uuid) throws AppException {
+        return repository.getByUUID(uuid);
+    }
+
+    public Optional<FileStorage> getByFilename(final String filename) {
+        return repository.getByFilename(filename);
+    }
+
+    public List<FileStorage> findResizedImages(final UUID uuid) {
+        return repository.fetchByUUID(uuid);
     }
 
     // METHODS
@@ -58,6 +73,15 @@ public class FileStorageService {
         fs.setCharset(charset);
         fs.setLength(length);
 
+        // try to set image dimensions
+        if (fs.isImage()) {
+            final FileUtils.Dimensions dimensions = fileUtils.getImageDimensions(content, contentType);
+            if (dimensions != null) {
+                fs.setWidth(dimensions.getWidth());
+                fs.setHeight(dimensions.getHeight());
+            }
+        }
+
         repository.persistAndFlush(fs);
 
         return fs;
@@ -66,7 +90,7 @@ public class FileStorageService {
     public FileStorage create(final String filename, final byte[] content, final String contentType, final String charset) {
         final boolean isText = fileUtils.isText(contentType) || fileUtils.isText(filename);
         final boolean isUtf8 = StringUtils.equalsIgnoreCase(charset, "UTF-8");
-        if (isText || !isUtf8) {
+        if (isText && !isUtf8) {
             try {
                 final byte[] contentUtf8 = fileUtils.toUTF8(content, charset);
                 return create(filename, contentUtf8, contentType, "UTF-8", contentUtf8.length);
@@ -100,6 +124,14 @@ public class FileStorageService {
         } catch (IOException e) {
             throw AppException.of(Response.Status.INTERNAL_SERVER_ERROR, e);
         }
+    }
+
+    public void persist(final FileStorage fs) {
+        repository.persistAndFlush(fs);
+    }
+
+    public void removeAll() {
+        repository.deleteAll();
     }
 
 }

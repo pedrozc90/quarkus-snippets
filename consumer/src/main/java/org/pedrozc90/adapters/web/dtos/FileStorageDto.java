@@ -57,4 +57,10 @@ public class FileStorageDto implements Serializable {
     @JsonProperty(value = "space")
     public String space;
 
+    @JsonProperty(value = "width")
+    public Integer width;
+
+    @JsonProperty(value = "height")
+    public Integer height;
+
 }

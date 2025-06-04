@@ -45,4 +45,13 @@ public class FilesResource {
         return Response.ok(dto).build();
     }
 
+    @Transactional
+    @GET
+    @Path("/{id}/preview")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response preview(@RestPath(value = "id") final Long id) throws AppException {
+        final FileStorage fs = service.get(id);
+        return Response.ok(fs.getContent(), fs.getContentType()).build();
+    }
+
 }

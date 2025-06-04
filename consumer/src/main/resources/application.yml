@@ -1,6 +1,8 @@
 quarkus:
     http:
-        port: 4000
+        port: 5000
+    debug:
+        port: 6005
     datasource:
         db-kind: postgresql
         db-version: 16.2
@@ -11,13 +13,19 @@ quarkus:
     hibernate-orm:
         schema-management:
             create-schemas: true
-            strategy: drop-and-create # none, create, drop-and-create, drop, update, validate
+            strategy: validate # none, create, drop-and-create, drop, update, validate
         database:
             version-check:
                 enabled: true
         log:
             sql: true
             format-sql: false
+    rabbitmqclient:
+        hostname: localhost
+        port: 5672
+        username: rabbitmq
+        password: rabbitmq
+        virtual-host: quarkus
 
 app:
     name: "consumer"
